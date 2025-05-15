@@ -2,7 +2,7 @@
 import { useState, useCallback } from "react";
 import { Provider, ProviderType, Request, RequestStatus } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
-import { mapDbRequestToRequest } from "@/types/supabaseTypes";
+import { mapDbProviderToProvider, mapDbRequestToRequest } from "@/types/supabaseTypes";
 import { toast } from "sonner";
 
 export const useRequests = (userId: string | null) => {
