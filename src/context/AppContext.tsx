@@ -65,15 +65,33 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           console.error('Error fetching user data:', userError);
         }
         
+        // Handle location data safely
+        let userLocation: { lat: number; lng: number } | undefined = undefined;
+        if (userData?.location) {
+          // If using PostGIS geography type (ST_AsGeoJSON)
+          try {
+            // Try parsing as GeoJSON
+            const geoJson = typeof userData.location === 'string' 
+              ? JSON.parse(userData.location) 
+              : userData.location;
+
+            if (geoJson && geoJson.coordinates) {
+              userLocation = {
+                lng: geoJson.coordinates[0],
+                lat: geoJson.coordinates[1]
+              };
+            }
+          } catch (e) {
+            console.error('Error parsing location:', e);
+          }
+        }
+        
         setUser({
           id,
           email: email || '',
           name: userData?.name || email?.split('@')[0] || '',
           phone: userData?.phone || '',
-          location: userData?.location ? {
-            lat: userData.location.coordinates[1],
-            lng: userData.location.coordinates[0],
-          } : undefined
+          location: userLocation
         });
         
         // Fetch user's search history
@@ -111,15 +129,33 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             .eq('id', id)
             .single();
           
+          // Handle location data safely
+          let userLocation: { lat: number; lng: number } | undefined = undefined;
+          if (userData?.location) {
+            // If using PostGIS geography type (ST_AsGeoJSON)
+            try {
+              // Try parsing as GeoJSON
+              const geoJson = typeof userData.location === 'string' 
+                ? JSON.parse(userData.location) 
+                : userData.location;
+
+              if (geoJson && geoJson.coordinates) {
+                userLocation = {
+                  lng: geoJson.coordinates[0],
+                  lat: geoJson.coordinates[1]
+                };
+              }
+            } catch (e) {
+              console.error('Error parsing location:', e);
+            }
+          }
+          
           setUser({
             id,
             email: email || '',
             name: userData?.name || email?.split('@')[0] || '',
             phone: userData?.phone || '',
-            location: userData?.location ? {
-              lat: userData.location.coordinates[1],
-              lng: userData.location.coordinates[0],
-            } : undefined
+            location: userLocation
           });
           
           fetchSearchHistory();

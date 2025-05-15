@@ -1,5 +1,6 @@
 
 import { Database } from '@/integrations/supabase/types';
+import { Provider, ProviderType, RequestStatus, SearchHistory, Request } from '@/types';
 
 // Define types based on Supabase database tables
 export type DbUser = Database['public']['Tables']['users']['Row'];
