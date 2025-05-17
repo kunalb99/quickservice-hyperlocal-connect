@@ -1,6 +1,5 @@
-
 import { useState, useCallback } from "react";
-import { Provider, ProviderType, Request, RequestStatus } from "@/types";
+import { Provider, ProviderType, Request } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 import { mapDbProviderToProvider, mapDbRequestToRequest } from "@/types/supabaseTypes";
 import { toast } from "sonner";
