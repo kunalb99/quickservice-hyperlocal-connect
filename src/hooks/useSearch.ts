@@ -53,7 +53,7 @@ export const useSearch = (userId: string | null) => {
         .textSearch('name', query, { 
           config: 'english',
           type: 'websearch'
-        }) as any;
+        }) as unknown as { data: any[], error: any };
       
       if (productsError) {
         console.error('Error searching products:', productsError);
@@ -66,7 +66,7 @@ export const useSearch = (userId: string | null) => {
         const { data: providerProductsData, error: providerProductsError } = await supabase
           .from('provider_products')
           .select('provider_id')
-          .in('product_id', productIds) as any;
+          .in('product_id', productIds) as unknown as { data: any[], error: any };
           
         if (providerProductsError) {
           console.error('Error fetching provider products:', providerProductsError);

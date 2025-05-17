@@ -1,6 +1,5 @@
-
 import { Database } from '@/integrations/supabase/types';
-import { Provider, ProviderType, RequestStatus, SearchHistory, Request } from '@/types';
+import { Provider, ProviderType, RequestStatus, SearchHistory, Request, Product, ProviderProduct } from '@/types';
 
 // Define types based on Supabase database tables
 export type DbUser = Database['public']['Tables']['users']['Row'];
@@ -8,6 +7,26 @@ export type DbProvider = Database['public']['Tables']['providers']['Row'];
 export type DbRequest = Database['public']['Tables']['requests']['Row'];
 export type DbRequestProvider = Database['public']['Tables']['request_providers']['Row'];
 export type DbSearchHistory = Database['public']['Tables']['search_history']['Row'];
+
+// We need to define these types for now since they don't exist in the Supabase types yet
+export type DbProduct = {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type DbProviderProduct = {
+  provider_id: string;
+  product_id: string;
+  in_stock: boolean;
+  price?: number;
+  id: string;
+  created_at?: string;
+  updated_at?: string;
+};
 
 // Helper function to calculate distance between coordinates
 export const calculateDistance = (
@@ -101,5 +120,27 @@ export const mapDbRequestToRequest = (
     timestamp: new Date(dbRequest.timestamp).getTime(),
     status: dbRequest.status as RequestStatus,
     providers,
+  };
+};
+
+// New function to map DB product to application Product type
+export const mapDbProductToProduct = (dbProduct: DbProduct): Product => {
+  return {
+    id: dbProduct.id,
+    name: dbProduct.name,
+    description: dbProduct.description,
+    category: dbProduct.category,
+    created_at: dbProduct.created_at,
+    updated_at: dbProduct.updated_at,
+  };
+};
+
+// New function to map DB provider product to application ProviderProduct type
+export const mapDbProviderProductToProviderProduct = (dbProviderProduct: DbProviderProduct): ProviderProduct => {
+  return {
+    provider_id: dbProviderProduct.provider_id,
+    product_id: dbProviderProduct.product_id,
+    in_stock: dbProviderProduct.in_stock,
+    price: dbProviderProduct.price,
   };
 };

@@ -2,6 +2,7 @@
 import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { DbProduct } from '@/types/supabaseTypes';
 
 // Sample products data
 const sampleProducts = [
@@ -44,7 +45,7 @@ const DataInitializer = () => {
       const { data: productsData, error: productsCheckError } = await supabase
         .from('products')
         .select('count')
-        .limit(1) as any;
+        .limit(1) as unknown as { data: any, error: any };
 
       if (productsCheckError && productsCheckError.code === '42P01') { // relation does not exist
         console.log('Products table does not exist, you need to create it in Supabase');
@@ -53,7 +54,7 @@ const DataInitializer = () => {
         // Check if we have any products
         const { count: productsCount, error: countError } = await supabase
           .from('products')
-          .select('*', { count: 'exact', head: true }) as any;
+          .select('*', { count: 'exact', head: true }) as unknown as { count: number, error: any };
 
         if (countError) {
           console.error('Error checking products count:', countError);
@@ -64,7 +65,7 @@ const DataInitializer = () => {
         if (productsCount === 0) {
           const { error: insertError } = await supabase
             .from('products')
-            .insert(sampleProducts) as any;
+            .insert(sampleProducts) as unknown as { error: any };
 
           if (insertError) {
             console.error('Error inserting sample products:', insertError);
@@ -79,7 +80,7 @@ const DataInitializer = () => {
         const { data: providerProducts, error: ppCheckError } = await supabase
           .from('provider_products')
           .select('count')
-          .limit(1) as any;
+          .limit(1) as unknown as { data: any, error: any };
 
         if (ppCheckError && ppCheckError.code === '42P01') {
           console.log('Provider_products table does not exist, you need to create it in Supabase');
