@@ -47,13 +47,13 @@ export const useSearch = (userId: string | null) => {
       let providers: Provider[] = [];
       
       // First, try to find products matching the search query
-      const { data: productsData, error: productsError } = await supabase
-        .from('products')
+      const { data: productsData, error: productsError } = await (supabase
+        .from('products') as any)
         .select('*')
         .textSearch('name', query, { 
           config: 'english',
           type: 'websearch'
-        }) as unknown as { data: any[], error: any };
+        });
       
       if (productsError) {
         console.error('Error searching products:', productsError);
@@ -63,10 +63,10 @@ export const useSearch = (userId: string | null) => {
         const productIds = productsData.map((product: any) => product.id);
         
         // Get providers linked to these products
-        const { data: providerProductsData, error: providerProductsError } = await supabase
-          .from('provider_products')
+        const { data: providerProductsData, error: providerProductsError } = await (supabase
+          .from('provider_products') as any)
           .select('provider_id')
-          .in('product_id', productIds) as unknown as { data: any[], error: any };
+          .in('product_id', productIds);
           
         if (providerProductsError) {
           console.error('Error fetching provider products:', providerProductsError);

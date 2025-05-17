@@ -13,10 +13,10 @@ const Products = () => {
   const { data: products, isLoading, error } = useQuery({
     queryKey: ['products'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('products')
+      const { data, error } = await (supabase
+        .from('products') as any)
         .select('*')
-        .order('name') as unknown as { data: any[], error: any };
+        .order('name');
         
       if (error) throw error;
       return data as Product[];
