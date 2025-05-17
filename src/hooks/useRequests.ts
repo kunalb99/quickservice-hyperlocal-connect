@@ -17,8 +17,7 @@ export const useRequests = (userId: string | null) => {
       .eq('user_id', userId)
       .eq('status', 'active')
       .order('timestamp', { ascending: false })
-      .limit(1)
-      .single();
+      .limit(1);
       
     if (requestError) {
       if (requestError.code !== 'PGRST116') { // Ignore 'no rows returned' error
