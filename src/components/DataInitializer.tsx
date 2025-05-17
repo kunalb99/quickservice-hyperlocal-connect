@@ -44,7 +44,7 @@ const DataInitializer = () => {
       const { data: productsData, error: productsCheckError } = await supabase
         .from('products')
         .select('count')
-        .limit(1);
+        .limit(1) as any;
 
       if (productsCheckError && productsCheckError.code === '42P01') { // relation does not exist
         console.log('Products table does not exist, you need to create it in Supabase');
@@ -53,7 +53,7 @@ const DataInitializer = () => {
         // Check if we have any products
         const { count: productsCount, error: countError } = await supabase
           .from('products')
-          .select('*', { count: 'exact', head: true });
+          .select('*', { count: 'exact', head: true }) as any;
 
         if (countError) {
           console.error('Error checking products count:', countError);
@@ -64,7 +64,7 @@ const DataInitializer = () => {
         if (productsCount === 0) {
           const { error: insertError } = await supabase
             .from('products')
-            .insert(sampleProducts);
+            .insert(sampleProducts) as any;
 
           if (insertError) {
             console.error('Error inserting sample products:', insertError);
@@ -79,7 +79,7 @@ const DataInitializer = () => {
         const { data: providerProducts, error: ppCheckError } = await supabase
           .from('provider_products')
           .select('count')
-          .limit(1);
+          .limit(1) as any;
 
         if (ppCheckError && ppCheckError.code === '42P01') {
           console.log('Provider_products table does not exist, you need to create it in Supabase');

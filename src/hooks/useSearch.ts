@@ -53,25 +53,25 @@ export const useSearch = (userId: string | null) => {
         .textSearch('name', query, { 
           config: 'english',
           type: 'websearch'
-        });
+        }) as any;
       
       if (productsError) {
         console.error('Error searching products:', productsError);
         toast.error('Failed to search products');
       } else if (productsData && productsData.length > 0) {
         // Get all provider_ids linked to these products
-        const productIds = productsData.map(product => product.id);
+        const productIds = productsData.map((product: any) => product.id);
         
         // Get providers linked to these products
         const { data: providerProductsData, error: providerProductsError } = await supabase
           .from('provider_products')
           .select('provider_id')
-          .in('product_id', productIds);
+          .in('product_id', productIds) as any;
           
         if (providerProductsError) {
           console.error('Error fetching provider products:', providerProductsError);
         } else if (providerProductsData && providerProductsData.length > 0) {
-          const providerIds = providerProductsData.map(pp => pp.provider_id);
+          const providerIds = providerProductsData.map((pp: any) => pp.provider_id);
           
           // Get provider details
           const { data: providersData, error: providersError } = await supabase

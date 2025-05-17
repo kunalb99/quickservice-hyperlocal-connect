@@ -29,7 +29,7 @@ const Products = () => {
       const { data, error } = await supabase
         .from('products')
         .select('*')
-        .order('name');
+        .order('name') as any;
         
       if (error) throw error;
       return data as Product[];
