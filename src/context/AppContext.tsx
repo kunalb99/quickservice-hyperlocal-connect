@@ -7,6 +7,7 @@ import { useSearch } from "@/hooks/useSearch";
 import { useRequests } from "@/hooks/useRequests";
 import { AppContextType } from "./types";
 import { mapDbSearchHistoryToSearchHistory } from "@/types/supabaseTypes";
+import { toast } from "sonner";
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
@@ -87,6 +88,3 @@ export const useApp = (): AppContextType => {
   }
   return context;
 };
-
-// Import toast here to avoid circular dependency
-import { toast } from "sonner";
