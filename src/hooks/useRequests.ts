@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Provider, ProviderType, Request } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 import { mapDbProviderToProvider, mapDbRequestToRequest } from "@/types/supabaseTypes";
@@ -7,6 +7,7 @@ import { toast } from "sonner";
 export const useRequests = (userId: string | null) => {
   const [activeRequest, setActiveRequest] = useState<Request | null>(null);
   const [isRequesting, setIsRequesting] = useState(false);
+  const didFetch = useRef(false);
 
   const fetchActiveRequest = useCallback(async () => {
     if (!userId) return null;
@@ -50,6 +51,13 @@ export const useRequests = (userId: string | null) => {
     setActiveRequest(request);
     return request;
   }, [userId]);
+
+  useEffect(() => {
+    if (userId && !didFetch.current) {
+      fetchActiveRequest();
+      didFetch.current = true;
+    }
+  }, [userId, fetchActiveRequest]);
 
   const simulateProviderResponses = useCallback(async (requestId: string) => {
     if (!activeRequest) return;
