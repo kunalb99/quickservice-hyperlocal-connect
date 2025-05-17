@@ -33,48 +33,96 @@ export const useSearch = (userId: string | null) => {
     setSearchQuery(query);
     setIsSearching(true);
     
+    // Default to product search type
+    let type: ProviderType = 'product';
+    
     // Determine search type based on query
     const serviceKeywords = ['plumber', 'electrician', 'cleaner', 'repair', 'service', 'fix'];
-    const type: ProviderType = serviceKeywords.some(keyword => query.toLowerCase().includes(keyword)) 
-      ? 'service' 
-      : 'product';
+    if (serviceKeywords.some(keyword => query.toLowerCase().includes(keyword))) {
+      type = 'service';
+    }
     setSearchType(type);
     
     try {
-      // Search for providers based on query
-      const { data, error } = await supabase
-        .from('providers')
+      let providers: Provider[] = [];
+      
+      // First, try to find products matching the search query
+      const { data: productsData, error: productsError } = await supabase
+        .from('products')
         .select('*')
         .textSearch('name', query, { 
           config: 'english',
           type: 'websearch'
-        })
-        .order('rating', { ascending: false });
+        });
+      
+      if (productsError) {
+        console.error('Error searching products:', productsError);
+        toast.error('Failed to search products');
+      } else if (productsData && productsData.length > 0) {
+        // Get all provider_ids linked to these products
+        const productIds = productsData.map(product => product.id);
         
-      if (error) {
-        console.error('Error searching providers:', error);
-        toast.error('Failed to search providers');
-        setSearchResults([]);
-        setIsSearching(false);
-        return;
+        // Get providers linked to these products
+        const { data: providerProductsData, error: providerProductsError } = await supabase
+          .from('provider_products')
+          .select('provider_id')
+          .in('product_id', productIds);
+          
+        if (providerProductsError) {
+          console.error('Error fetching provider products:', providerProductsError);
+        } else if (providerProductsData && providerProductsData.length > 0) {
+          const providerIds = providerProductsData.map(pp => pp.provider_id);
+          
+          // Get provider details
+          const { data: providersData, error: providersError } = await supabase
+            .from('providers')
+            .select('*')
+            .in('id', providerIds)
+            .order('rating', { ascending: false });
+            
+          if (providersError) {
+            console.error('Error fetching providers:', providersError);
+          } else if (providersData) {
+            providers = providersData.map(provider => mapDbProviderToProvider(provider));
+          }
+        }
       }
       
-      let providers: Provider[] = [];
-      
-      if (data && data.length > 0) {
-        providers = data.map(provider => mapDbProviderToProvider(provider));
-      } else {
-        // If no direct matches, try to find providers by category
-        const { data: categoryData, error: categoryError } = await supabase
+      // If no providers found through products or as a fallback, search providers directly
+      if (providers.length === 0) {
+        // Search for providers based on query
+        const { data, error } = await supabase
           .from('providers')
           .select('*')
-          .eq('category', query.toLowerCase())
+          .textSearch('name', query, { 
+            config: 'english',
+            type: 'websearch'
+          })
           .order('rating', { ascending: false });
           
-        if (categoryError) {
-          console.error('Error searching providers by category:', categoryError);
-        } else if (categoryData) {
-          providers = categoryData.map(provider => mapDbProviderToProvider(provider));
+        if (error) {
+          console.error('Error searching providers:', error);
+          toast.error('Failed to search providers');
+          setSearchResults([]);
+          setIsSearching(false);
+          return;
+        }
+        
+        if (data && data.length > 0) {
+          providers = data.map(provider => mapDbProviderToProvider(provider));
+        } else {
+          // If no direct matches, try to find providers by category
+          const { data: categoryData, error: categoryError } = await supabase
+            .from('providers')
+            .select('*')
+            .eq('category', query.toLowerCase())
+            .order('rating', { ascending: false });
+            
+          if (categoryError) {
+            console.error('Error searching providers by category:', categoryError);
+          } else if (categoryData) {
+            providers = categoryData.map(provider => mapDbProviderToProvider(provider));
+          }
         }
       }
       

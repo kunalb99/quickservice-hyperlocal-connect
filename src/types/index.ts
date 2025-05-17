@@ -46,3 +46,19 @@ export interface SearchHistory {
   timestamp: number;
   type: ProviderType;
 }
+
+export type Product = {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type ProviderProduct = {
+  provider_id: string;
+  product_id: string;
+  in_stock: boolean;
+  price?: number;
+};
