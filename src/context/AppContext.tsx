@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
+import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from "react";
 import { Provider, SearchHistory } from "@/types";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -31,21 +31,29 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   }, [user, isLoading, location.pathname, navigate]);
 
-  // Load search history when user changes
+  // Load search history when user changes - Fixed to prevent infinite loop
   useEffect(() => {
     if (user?.id) {
       const loadSearchHistory = async () => {
-        const historyData = await fetchSearchHistory();
-        const searchHistoryData = historyData.map(mapDbSearchHistoryToSearchHistory);
-        setSearchHistory(searchHistoryData);
+        try {
+          const historyData = await fetchSearchHistory();
+          const searchHistoryData = historyData.map(mapDbSearchHistoryToSearchHistory);
+          setSearchHistory(searchHistoryData);
+        } catch (error) {
+          console.error("Error loading search history:", error);
+        }
       };
       
       loadSearchHistory();
+      
+      // Only fetch active request once when user changes
       fetchActiveRequest();
     } else {
       setSearchHistory([]);
     }
-  }, [user?.id, fetchSearchHistory, fetchActiveRequest]);
+    // Important: Don't include fetchSearchHistory or fetchActiveRequest in the dependency array
+    // as they're recreated on each render and would cause infinite loops
+  }, [user?.id]); // Only depend on user.id changing
 
   // Wrapper for sendRequest to use current state values
   const handleSendRequest = async () => {
