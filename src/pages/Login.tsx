@@ -32,6 +32,7 @@ const Login = () => {
       if (isSignup) {
         if (!name) {
           toast.error("Please enter your name");
+          setIsSubmitting(false);
           return;
         }
         await signup(email, password, name);
