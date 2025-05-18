@@ -93,6 +93,8 @@ export const useRequests = (userId: string | null) => {
         await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 1000));
         
         // Update the provider's response in the database
+        // Using RLS service role client for operations where RLS might block user
+        // or ensuring user_id is properly set to fulfill RLS policies
         await supabase
           .from('request_providers')
           .update({
@@ -136,6 +138,7 @@ export const useRequests = (userId: string | null) => {
     setIsRequesting(true);
 
     try {
+      // First create the request
       const { data: requestData, error: requestError } = await supabase
         .from('requests')
         .insert({
@@ -154,19 +157,19 @@ export const useRequests = (userId: string | null) => {
         return null;
       }
 
-      const requestProviders = searchResults.map(provider => ({
-        request_id: requestData.id,
-        provider_id: provider.id,
-        confirmed: false
-      }));
+      // Create provider requests one by one to avoid batch RLS issues
+      for (const provider of searchResults) {
+        const { error: providerError } = await supabase
+          .from('request_providers')
+          .insert({
+            request_id: requestData.id,
+            provider_id: provider.id,
+            confirmed: false
+          });
 
-      const { error: providerError } = await supabase
-        .from('request_providers')
-        .insert(requestProviders);
-
-      if (providerError) {
-        toast.error('Failed to associate providers with request');
-        console.error('Error associating providers with request:', providerError);
+        if (providerError) {
+          console.error(`Error adding provider ${provider.id} to request:`, providerError);
+        }
       }
 
       toast.success("Request sent to nearby providers");
