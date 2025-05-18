@@ -90,7 +90,7 @@ const SearchResults: React.FC = () => {
   const isActive = !!activeRequest;
   
   return (
-    <div className="bg-white h-full overflow-y-auto">
+    <div className="bg-white h-full overflow-y-auto flex flex-col">
       <div className="sticky top-0 bg-white p-4 border-b border-gray-100 z-10">
         <div className="flex justify-between items-center mb-2">
           <h2 className="text-lg font-semibold">
@@ -141,7 +141,7 @@ const SearchResults: React.FC = () => {
         )}
       </div>
       
-      <div className="p-4">
+      <div className="p-4 flex-1 overflow-auto">
         {filteredProviders.length > 0 ? (
           <div>
             {filteredProviders.map((provider) => (

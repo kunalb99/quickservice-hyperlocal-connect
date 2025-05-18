@@ -59,13 +59,13 @@ const Map: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 relative flex flex-col">
+    <div className="flex-1 relative flex flex-col h-full">
       {/* Simulated Map */}
-      <div className="flex-1 bg-gray-200 relative" ref={mapRef}>
+      <div className="flex-1 bg-gray-200 relative h-full" ref={mapRef}>
         {/* Show placeholder map with markers */}
         <div className="h-full w-full bg-gray-100 relative overflow-hidden">
           {/* Fake map background with grid */}
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0wIDBoNDB2NDBIMHoiLz48cGF0aCBkPSJNMCAwaDJ2NDBoLTJ6TTE5IDBIMjF2NDBIMTl6TTM4IDBoMnY0MGgtMnpNMCAwdjJoNDBWMHpNMCAxOXYyaDQwdi0yek0wIDM4djJoNDB2LTJ6IiBmaWxsPSIjZTVlN2ViIi8+PC9nPjwvc3ZnPg==')]"></div>
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0wIDBoNDB2NDBIMHoiLz48cGF0aCBkPSJNMCAwaDJ2NDBIMnpNMTkgMEgyMXY0MEgxOXpNMzggMGgydjQwaC0yek0wIDB2Mmg0MFYwek0wIDE5djJoNDB2LTJ6TTAgMzh2Mmg0MHYtMnoiIGZpbGw9IiNlNWU3ZWIiLz48L2c+PC9zdmc+')]"></div>
           
           {/* User location */}
           <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
