@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useEffect, useRef } from "react";
 import { Provider, ProviderType, Request } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
@@ -62,33 +63,66 @@ export const useRequests = (userId: string | null) => {
   const simulateProviderResponses = useCallback(async (requestId: string) => {
     if (!activeRequest) return;
 
+    // First, wait a bit to show signals being sent
     setTimeout(async () => {
-      const confirmedProviders = activeRequest.providers
-        .filter(() => Math.random() > 0.3)
-        .map(provider => ({
+      const responseProviders = activeRequest.providers.map(provider => {
+        // Randomly decide if provider accepts, rejects, or doesn't respond
+        const randomResponse = Math.random();
+        const isConfirmed = randomResponse > 0.3;
+        const willRespond = randomResponse > 0.1; // 90% will respond
+        
+        return {
           request_id: requestId,
           provider_id: provider.id,
-          confirmed: true,
-          confirmation_message: getRandomConfirmationMessage(provider.type)
-        }));
+          confirmed: willRespond ? isConfirmed : null,
+          confirmation_message: willRespond && isConfirmed 
+            ? getRandomConfirmationMessage(provider.type)
+            : undefined
+        };
+      });
 
-      for (const provider of confirmedProviders) {
+      // Update each provider's response individually with slight timing differences
+      let confirmedCount = 0;
+      let rejectedCount = 0;
+      
+      for (const [index, provider] of responseProviders.entries()) {
+        // Skip if the provider won't respond
+        if (provider.confirmed === null) continue;
+        
+        // Add a slight delay between updates for visual effect
+        await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 1000));
+        
+        // Update the provider's response in the database
         await supabase
           .from('request_providers')
           .update({
-            confirmed: true,
+            confirmed: provider.confirmed,
             confirmation_message: provider.confirmation_message
           })
           .eq('request_id', provider.request_id)
           .eq('provider_id', provider.provider_id);
+        
+        // Count responses for notifications
+        if (provider.confirmed) {
+          confirmedCount++;
+        } else {
+          rejectedCount++;
+        }
+        
+        // Refresh the active request to show updated responses
+        await fetchActiveRequest();
       }
 
-      await fetchActiveRequest();
-
-      if (confirmedProviders.length > 0) {
-        toast.success(`${confirmedProviders.length} provider${confirmedProviders.length !== 1 ? 's' : ''} confirmed availability!`);
+      // Show toast notifications about responses
+      if (confirmedCount > 0) {
+        toast.success(`${confirmedCount} provider${confirmedCount !== 1 ? 's' : ''} confirmed availability!`);
       }
-    }, 3000);
+      
+      if (rejectedCount > 0) {
+        toast.error(`${rejectedCount} provider${rejectedCount !== 1 ? 's' : ''} can't fulfill your request.`);
+      }
+      
+    }, 2000);
   }, [activeRequest, fetchActiveRequest]);
 
   const sendRequest = useCallback(async (
@@ -135,8 +169,8 @@ export const useRequests = (userId: string | null) => {
         console.error('Error associating providers with request:', providerError);
       }
 
-      setTimeout(() => simulateProviderResponses(requestData.id), 2000);
-
+      toast.success("Request sent to nearby providers");
+      
       const newRequest: Request = {
         id: requestData.id,
         query: searchQuery,
@@ -148,6 +182,10 @@ export const useRequests = (userId: string | null) => {
       };
 
       setActiveRequest(newRequest);
+      
+      // Start the simulation with a delay to show signals being sent first
+      setTimeout(() => simulateProviderResponses(requestData.id), 1000);
+      
       return newRequest;
     } catch (error) {
       toast.error('An error occurred while sending request');

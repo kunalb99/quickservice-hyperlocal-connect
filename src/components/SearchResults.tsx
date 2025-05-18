@@ -12,6 +12,10 @@ const ProviderCard: React.FC<{ provider: Provider }> = ({ provider }) => {
   const handleSelectProvider = () => {
     setSelectedProvider(provider);
   };
+
+  // Determine status for display
+  const isConfirmed = provider.confirmed === true;
+  const isRejected = provider.confirmed === false;
   
   return (
     <Card className="mb-3 overflow-hidden">
@@ -26,14 +30,19 @@ const ProviderCard: React.FC<{ provider: Provider }> = ({ provider }) => {
               <span>{provider.rating.toFixed(1)}</span>
             </div>
           </div>
-          {provider.confirmed && (
+          {isConfirmed && (
             <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
               Available
             </span>
           )}
+          {isRejected && (
+            <span className="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">
+              Unavailable
+            </span>
+          )}
         </div>
         
-        {provider.confirmed && provider.confirmationMessage && (
+        {isConfirmed && provider.confirmationMessage && (
           <div className="bg-green-50 border border-green-100 rounded p-2 mt-3 text-sm text-green-800">
             {provider.confirmationMessage}
           </div>
@@ -49,7 +58,7 @@ const ProviderCard: React.FC<{ provider: Provider }> = ({ provider }) => {
             View on Map
           </Button>
           
-          {provider.confirmed && (
+          {isConfirmed && (
             provider.type === "service" ? (
               <Button size="sm" className="bg-quickservice-purple hover:bg-quickservice-dark-purple">
                 <Phone size={16} className="mr-1" /> Call
@@ -74,10 +83,10 @@ const SearchResults: React.FC = () => {
   
   // Filter providers based on view mode
   const filteredProviders = viewMode === 'confirmed'
-    ? providers.filter(p => p.confirmed)
+    ? providers.filter(p => p.confirmed === true)
     : providers;
     
-  const hasConfirmedProviders = providers.some(p => p.confirmed);
+  const hasConfirmedProviders = providers.some(p => p.confirmed === true);
   const isActive = !!activeRequest;
   
   return (
@@ -118,7 +127,7 @@ const SearchResults: React.FC = () => {
         {isActive && (
           <div className="flex justify-between items-center">
             <p className="text-sm text-gray-500">
-              {providers.filter(p => p.confirmed).length} of {providers.length} providers confirmed
+              {providers.filter(p => p.confirmed === true).length} of {providers.length} providers confirmed
             </p>
             <Button 
               variant="ghost"

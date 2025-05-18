@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { Provider } from '@/types';
-import { MapPin, ChevronUp } from 'lucide-react';
+import { MapPin, ChevronUp, Signal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { currentUser } from '@/services/mockData';
 
@@ -11,6 +11,7 @@ const Map: React.FC = () => {
   const mapRef = useRef<HTMLDivElement>(null);
   const { searchResults, activeRequest, selectedProvider, setSelectedProvider } = useApp();
   const [showDetails, setShowDetails] = useState(false);
+  const [signalAnimations, setSignalAnimations] = useState<{[key: string]: boolean}>({});
 
   // Use activeRequest providers if available, otherwise use search results
   const providers = activeRequest ? activeRequest.providers : searchResults;
@@ -23,12 +24,33 @@ const Map: React.FC = () => {
     }
   }, [providers]);
 
-  // In a real implementation, we would update markers when providers change
+  // Start signal animations when a request is active
   useEffect(() => {
-    if (providers.length > 0) {
-      console.log('Map would update markers for providers:', providers);
+    if (activeRequest) {
+      // Initialize animations for all providers
+      const initialSignals = providers.reduce((acc: {[key: string]: boolean}, provider) => {
+        acc[provider.id] = true;
+        return acc;
+      }, {});
+      
+      setSignalAnimations(initialSignals);
+      
+      // After some time, stop animations for providers that have responded
+      const timer = setTimeout(() => {
+        const updatedSignals = {...initialSignals};
+        providers.forEach(provider => {
+          if (provider.confirmed !== undefined) {
+            updatedSignals[provider.id] = false;
+          }
+        });
+        setSignalAnimations(updatedSignals);
+      }, 3000);
+      
+      return () => clearTimeout(timer);
+    } else {
+      setSignalAnimations({});
     }
-  }, [providers]);
+  }, [activeRequest, providers]);
 
   // Handle provider selection
   const handleProviderClick = (provider: Provider) => {
@@ -50,10 +72,12 @@ const Map: React.FC = () => {
             <div className="h-4 w-4 rounded-full bg-blue-500 border-2 border-white shadow-lg pulse-animation"></div>
           </div>
           
-          {/* Provider markers */}
+          {/* Provider markers with signal animations */}
           {providers.map((provider) => {
             const isConfirmed = provider.confirmed;
+            const isRejected = provider.confirmed === false;
             const isSelected = selectedProvider?.id === provider.id;
+            const isAnimating = signalAnimations[provider.id];
             
             // Calculate offset positions based on provider index for visualization
             const index = providers.indexOf(provider);
@@ -69,14 +93,32 @@ const Map: React.FC = () => {
                 style={{ left, top }}
                 onClick={() => handleProviderClick(provider)}
               >
+                {/* Signal animation */}
+                {isAnimating && activeRequest && (
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                    <div className={`absolute -top-32 -left-32 w-64 h-64 rounded-full border-2 ${isConfirmed ? 'border-green-400' : isRejected ? 'border-red-400' : 'border-quickservice-purple'} animate-ping opacity-20`}></div>
+                    <div className={`absolute -top-24 -left-24 w-48 h-48 rounded-full border-2 ${isConfirmed ? 'border-green-400' : isRejected ? 'border-red-400' : 'border-quickservice-purple'} animate-ping opacity-30`}></div>
+                    <div className={`absolute -top-16 -left-16 w-32 h-32 rounded-full border-2 ${isConfirmed ? 'border-green-400' : isRejected ? 'border-red-400' : 'border-quickservice-purple'} animate-ping opacity-40`}></div>
+                  </div>
+                )}
+                
                 <div className={`flex flex-col items-center`}>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isConfirmed ? 'bg-quickservice-green' : 'bg-quickservice-purple'} text-white shadow-lg`}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                    isConfirmed 
+                      ? 'bg-quickservice-green' 
+                      : isRejected 
+                        ? 'bg-red-500' 
+                        : 'bg-quickservice-purple'
+                  } text-white shadow-lg ${isAnimating ? 'pulse-animation' : ''}`}>
                     <MapPin size={16} />
                   </div>
                   {isSelected && (
                     <div className="mt-1 bg-white rounded-md shadow-md p-1 text-xs font-medium max-w-[120px] text-center">
                       {provider.name}
                     </div>
+                  )}
+                  {isAnimating && activeRequest && (
+                    <Signal className={`absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-4 text-quickservice-purple ${isConfirmed ? 'text-green-500' : isRejected ? 'text-red-500' : 'text-quickservice-purple'} animate-pulse`} size={12} />
                   )}
                 </div>
               </div>
@@ -103,8 +145,18 @@ const Map: React.FC = () => {
                   {selectedProvider.distance.toFixed(1)} km away • ★ {selectedProvider.rating.toFixed(1)}
                 </p>
               </div>
-              <div className={`px-2 py-1 rounded-full text-xs font-medium ${selectedProvider.confirmed ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                {selectedProvider.confirmed ? 'Available' : 'Pending'}
+              <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                selectedProvider.confirmed === true 
+                  ? 'bg-green-100 text-green-800' 
+                  : selectedProvider.confirmed === false 
+                    ? 'bg-red-100 text-red-800' 
+                    : 'bg-gray-100 text-gray-800'
+              }`}>
+                {selectedProvider.confirmed === true 
+                  ? 'Available' 
+                  : selectedProvider.confirmed === false 
+                    ? 'Rejected' 
+                    : 'Pending'}
               </div>
             </div>
             

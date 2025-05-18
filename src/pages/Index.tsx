@@ -10,10 +10,16 @@ import EmptyState from '@/components/EmptyState';
 const Index = () => {
   const { searchQuery, searchResults, activeRequest } = useApp();
   const [showResults, setShowResults] = useState(false);
+  const [showMap, setShowMap] = useState(true); // Default to showing the map on mobile
 
   // Show results when there are search results or an active request
   useEffect(() => {
     setShowResults(searchResults.length > 0 || activeRequest !== null);
+    
+    // Automatically show the map when searching or when there's an active request
+    if (searchResults.length > 0 || activeRequest !== null) {
+      setShowMap(true);
+    }
   }, [searchResults, activeRequest]);
 
   return (
@@ -25,8 +31,26 @@ const Index = () => {
           <>
             {/* Small screens: Stack vertically with tab navigation */}
             <div className="md:hidden flex-1">
-              {/* We're showing the map by default on mobile */}
-              <Map />
+              {/* Toggle between map and list on mobile */}
+              <div className="absolute top-0 right-0 left-0 z-10 flex bg-white border-b border-gray-100">
+                <button 
+                  className={`flex-1 py-2 text-sm font-medium ${showMap ? 'text-quickservice-purple' : 'text-gray-500'}`}
+                  onClick={() => setShowMap(true)}
+                >
+                  Map View
+                </button>
+                <button 
+                  className={`flex-1 py-2 text-sm font-medium ${!showMap ? 'text-quickservice-purple' : 'text-gray-500'}`}
+                  onClick={() => setShowMap(false)}
+                >
+                  List View
+                </button>
+              </div>
+              
+              {/* Show either map or results based on tab selection */}
+              <div className="mt-10">
+                {showMap ? <Map /> : <SearchResults />}
+              </div>
             </div>
 
             {/* Medium+ screens: Side-by-side layout */}
